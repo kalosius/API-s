@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 @api_view(['GET', 'POST'])
-def course_list(request):
+def course_list(request, format=None):
     # Get all courses
     # Serialise them
     # return json
@@ -24,7 +24,7 @@ def course_list(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def course_detail(request, id):
+def course_detail(request, id, format=None):
     try:
         course = Course.objects.get(pk=id)
     except Course.DoesNotExist:
@@ -34,8 +34,13 @@ def course_detail(request, id):
         serializer = CourseSerializer(course)
         return Response(serializer.data)
 
-    if request.method == 'POST':
-        pass
+    if request.method == 'PUT':
+        serializer = CourseSerializer(course, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     if request.method == 'DELETE':
-        pass
+        course.delete()
+        return Response(status=status.http_204)
